@@ -33,6 +33,10 @@ namespace __scudo {
 // Global static cookie, initialized at start-up.
 static u32 Cookie;
 
+  
+ // Replace CRC32 with reduced round (to 3) AES with independent subkeys in
+ // a truncated CBC-mac mode. Default to djb2 with no AES-NI.
+ // checkum is 6 bytes in a long long int, with 0th and 7th byte set to null
 // We default to software CRC32 if the alternatives are not supported, either
 // at compilation or at runtime.
 static atomic_uint8_t HashAlgorithm = { CRC32Software };
@@ -42,6 +46,7 @@ INLINE u32 computeCRC32(u32 Crc, uptr Value, uptr *Array, uptr ArraySize) {
   // as opposed to only for scudo_crc32.cpp. This means that other hardware
   // specific instructions were likely emitted at other places, and as a
   // result there is no reason to not use it here.
+ 
 #if defined(__SSE4_2__) || defined(__ARM_FEATURE_CRC32)
   Crc = CRC32_INTRINSIC(Crc, Value);
   for (uptr i = 0; i < ArraySize; i++)
